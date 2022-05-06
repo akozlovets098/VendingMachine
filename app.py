@@ -1,6 +1,7 @@
 from models import Category
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from database import db
+from datetime import date
 
 app = FastAPI()
 
@@ -27,23 +28,23 @@ def add_category(category: Category):
 
 
 @app.post('/list/{category}')
+def purchase(category, date_of_purchase: date = date.today()):
+    for item in db:
+        if item.name == category:
+            if item.quantity > 0:
+                item.quantity -= 1
+                return f'You purchased {item.name} for {item.price}. Date: {date_of_purchase}'
+            else:
+                return f'There left none of {item.name}'
+    return 'There is no such category'
+
+
+@app.put('/list/{category}')
 def add_items(quantity: int, category: str):
     for item in db:
         if item.name == category:
             item.quantity += quantity
             return f'{item.name} quantity was successfully increased by {quantity}'
-
-
-@app.post('/list/{category_name}')
-def purchase(category_name, date):
-    for item in db:
-        if item.name == category_name:
-            if item.quantity > 0:
-                item.quantity -= 1
-                return f'You purchased {item.name} for {item.price}'
-            else:
-                return f'There left none of {item.name}'
-    return 'There is no such category'
 
 
 @app.delete('/list')
